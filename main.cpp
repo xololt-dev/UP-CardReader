@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <bitset>
-#include <winscard.h>
 #include <iostream>
-#pragma comment(lib, "Winscard")
+
+#include "util.hpp"
 
 #define MAX_READER_NAME_SIZE 40
 
@@ -264,7 +264,7 @@ int main(int argc, char** argv)
 		delete[] mszReadersP;
 		return -1;
 	}
-	std::cout << "Select SMS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+
 	printf("Response APDU : ");
 
 	// wydruk odpowiedzi karty
@@ -322,56 +322,8 @@ int main(int argc, char** argv)
 			printf("%02X ", pbResp5[j]);
 		}
 		printf("\n");
-		bool toNumber = false, ff = false, lastPos = 0;
-		for (int j = 0; j < dwRespLen; j++)
-		{
-			// std::cout << pbResp5[j];
-			if ((int)pbResp5[j] == 255) {
-				std::cout << ".";
-				ff = true;
-				toNumber = false;
-			}
-			else {
-				if (ff == true) {
-					// j++;
-					lastPos = j;
-					break;
-					ff = false;
-					toNumber = true;
-					continue;
-				}		
-
-				if (!toNumber)
-					printf("%c ", pbResp5[j]);
-				else {
-					std::bitset<8> y{ pbResp5[j] };
-					std::cout << (int)(y.to_ulong()) << " ";
-					// std::cout << y[3] << y[2] << y[1] << y[0] << " ";
-					// int high = pbResp5[j];
-					// int low = pbResp5[j] - high;
-
-					// std::cout << high << " ";
-				}
-			}
-		}
-
-		for (int j = lastPos; j < dwRespLen; j++) {
-			std::bitset<8> y{ pbResp5[j] };
-			std::cout << y.to_string() << " ";
-			/*
-			int out = 0;
-			int multi = 1;
-			for (int x = 7; x > 3; x--) {
-				out += y[x] * multi;
-				multi *= 2;
-			}
-			multi = 1, multi = 0;
-			for (int x = 3; x > -1; x--) {
-				out += y[x] * multi;
-				multi *= 2;
-			}
-			std::cout << out << " ";*/
-		}
+		
+		dekodowanie(pbResp5);
 
 		printf("\n");
 	}

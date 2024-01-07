@@ -8,7 +8,7 @@ void dekodowanie(BYTE* wiadomosc) {
     // Odczyt nazwy kontaktu
     int i = 0;
     BYTE tempChar = wiadomosc[i];
-    // Czytamy dopóki nie trafimy na 0xFF
+    // Czytamy dopoki nie trafimy na 0xFF
     while ((int)tempChar != 255) {
         std::cout << tempChar;
         i++;
@@ -18,15 +18,15 @@ void dekodowanie(BYTE* wiadomosc) {
     // Przechodzimy do odczytu numeru
     i = 18;
     tempChar = wiadomosc[i];
-    // Czytamy dopóki nie trafimy na 0xFF
+    // Czytamy dopoki nie trafimy na 0xFF
     while ((int)tempChar != 255) {
-        // Trzeba zamienić kolejność znaków
+        // Trzeba zamienic kolejnosc znakow
         int displayNumber = (int)(tempChar & 0x0F);
         // Wyswietlic odpowiednio jako int lub char
         if (displayNumber < 10)
             std::cout << displayNumber;
         else std::cout << (char)(displayNumber + 55);
-        // Długość numeru to max +xx xxx xx xx xx
+        // D�ugo�� numeru to max +xx xxx xx xx xx
         if (i >= 23) break;
         displayNumber = (int)((tempChar & 0xF0) >> 4);
         if (displayNumber < 10)
