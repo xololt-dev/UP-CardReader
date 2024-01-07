@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <bitset>
 #include <winscard.h>
 #include <iostream>
 #pragma comment(lib, "Winscard")
@@ -141,7 +141,7 @@ int main(int argc, char** argv)
 	p = 0;
 	for (i = 0; i < dwReaders - 1; ++i)	{
 		iReaders[++p] = i;
-		std::cout << "Reader " << p << ": " << &mszReaders[i] << std::endl;
+		std::cout << "Reader " << p << ": " << mszReaders[i] << std::endl;
 		// printf("Reader %02d: %s\n", p, &mszReaders[i]);
 		// przesuniêcie bufora do kolejnej nazwy czytnika
 		while (mszReaders[++i] != '\0');
@@ -256,7 +256,7 @@ int main(int argc, char** argv)
 	// przes³anie do karty komendy 
 	dwRespLen = 30;
 
-	if (!commandTransitSuccessful(hCard, SELECT_SMS, 7,
+	if (!commandTransitSuccessful(hCard, SELECT_CONTACTS, 7,
 		pbResp3, &dwRespLen)) {
 		SCardDisconnect(hCard, SCARD_RESET_CARD);
 		SCardReleaseContext(hContext);
@@ -264,7 +264,7 @@ int main(int argc, char** argv)
 		delete[] mszReadersP;
 		return -1;
 	}
-
+	std::cout << "Select SMS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 	printf("Response APDU : ");
 
 	// wydruk odpowiedzi karty
@@ -289,7 +289,7 @@ int main(int argc, char** argv)
 	}
 
 	printf("Response APDU : ");
-
+	
 	// wydruk odpowiedzi karty
 	for (i = 0; i < dwRespLen; i++)
 	{
@@ -297,8 +297,8 @@ int main(int argc, char** argv)
 	}
 	printf("\n");
 
-	BYTE READ_RECORD[] = { 0xA0, 0xB2, 0x01, 0x04, 0xB0 };
-	for (int i = 1; i < 4; i++) {
+	BYTE READ_RECORD[] = { 0xA0, 0xB2, 0x01, 0x04, 0x1E }; // 0xB0 };
+	for (int i = 1; i < 25; i++) {
 		// przes³anie do karty komendy
 		dwRespLen = 178;
 		READ_RECORD[2] = i;
@@ -316,10 +316,63 @@ int main(int argc, char** argv)
 		// printf("\nSMS1\nResponse APDU : ");
 
 		// wydruk odpowiedzi karty
-		for (i = 0; i < dwRespLen; i++)
+		for (int j = 0; j < dwRespLen; j++)
 		{
-			printf("%02X ", pbResp5[i]);
+			// std::cout << pbResp5[j];
+			printf("%02X ", pbResp5[j]);
 		}
+		printf("\n");
+		bool toNumber = false, ff = false, lastPos = 0;
+		for (int j = 0; j < dwRespLen; j++)
+		{
+			// std::cout << pbResp5[j];
+			if ((int)pbResp5[j] == 255) {
+				std::cout << ".";
+				ff = true;
+				toNumber = false;
+			}
+			else {
+				if (ff == true) {
+					// j++;
+					lastPos = j;
+					break;
+					ff = false;
+					toNumber = true;
+					continue;
+				}		
+
+				if (!toNumber)
+					printf("%c ", pbResp5[j]);
+				else {
+					std::bitset<8> y{ pbResp5[j] };
+					std::cout << (int)(y.to_ulong()) << " ";
+					// std::cout << y[3] << y[2] << y[1] << y[0] << " ";
+					// int high = pbResp5[j];
+					// int low = pbResp5[j] - high;
+
+					// std::cout << high << " ";
+				}
+			}
+		}
+
+		for (int j = lastPos; j < dwRespLen; j++) {
+			std::bitset<8> y{ pbResp5[j] };
+			std::cout << y.to_string() << " ";
+			/*
+			int out = 0;
+			int multi = 1;
+			for (int x = 7; x > 3; x--) {
+				out += y[x] * multi;
+				multi *= 2;
+			}
+			multi = 1, multi = 0;
+			for (int x = 3; x > -1; x--) {
+				out += y[x] * multi;
+				multi *= 2;
+			}
+			std::cout << out << " ";*/
+		}
+
 		printf("\n");
 	}
 	
@@ -456,7 +509,10 @@ int main(int argc, char** argv)
 		return -1;
 	}
 	else printf("success\n");
-
-	//free(mszReaders);
+	
 	return 0;
+
+	free(mszReaders);
+	delete[] mszReadersP;
+	// return 0;
 }
